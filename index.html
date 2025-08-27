@@ -1,1 +1,66 @@
-Test
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Redirigiendo...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #fff7f0;
+      text-align: center;
+    }
+    .container {
+      max-width: 400px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    button {
+      background-color: orange;
+      border: none;
+      padding: 15px 25px;
+      font-size: 18px;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      display: none; /* oculto por defecto */
+    }
+    button:hover {
+      background-color: darkorange;
+    }
+  </style>
+  <script>
+    // URL de destino
+    const destino = "https://hablahistoria.lat/";
+
+    // Intento de redirección automática
+    window.onload = function() {
+      setTimeout(() => {
+        try {
+          window.location.href = destino;
+        } catch (e) {
+          document.getElementById("redir-btn").style.display = "inline-block";
+        }
+      }, 2000);
+
+      // Si pasan 4 segundos y no se redirigió, mostrar botón
+      setTimeout(() => {
+        document.getElementById("redir-btn").style.display = "inline-block";
+      }, 4000);
+    };
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Redirigiendo a HablaHistoria...</h1>
+    <button id="redir-btn" onclick="window.location.href=destino">Ir a la web</button>
+  </div>
+</body>
+</html>
