@@ -118,6 +118,11 @@ button:active {
   background: radial-gradient( circle farthest-corner at 10% 20%,  rgba(255,94,247,1) 17.8%, rgba(2,245,255,1) 100.2% );
   transition: 0.5s;
 }
+
+.btni {
+  height: 20px;
+  vertical-align: middle;
+}
 .link-card .btn {
   display: inline-block;
   background: rgba(255,255,255,0.2);
@@ -184,23 +189,7 @@ button:active {
   <h3 style="font-size:1rem;">¿Quieres contactarnos?</h3>
 
   <!-- Botón Correo -->
-  <button onclick="window.location.href='mailto:support@hug-oh.com'" style="margin:0.3rem; padding:6px 12px; font-size:0.75rem; border-radius:12px;">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" width="16" height="16">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-            d="M16 12l-4-4-4 4m8 0l-4 4-4-4" />
-    </svg>
-    <span style="margin-left:4px;">Correo</span>
-  </button>
-
-  <!-- Botón Teléfono -->
-  <button onclick="window.location.href='tel:+50371174713'" style="margin:0.3rem; padding:6px 12px; font-size:0.75rem; border-radius:12px;">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" width="16" height="16">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.95.68l1.22 3.66a1 1 0 01-.27 1.05l-2.4 2.4a16.001 16.001 0 006.59 6.59l2.4-2.4a1 1 0 011.05-.27l3.66 1.22a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C9.16 21 3 14.84 3 7V5z" />
-    </svg>
-    <span style="margin-left:4px;">Llamar</span>
-  </button>
-</section>
+  <button onclick="window.location.href='mailto:support@hug-oh.com'" style="margin:0.3rem; padding:6px 12px; font-size:0.75rem; border-radius:12px;"><img src="envelope.svg" class="btni" alt="Correo"></button>
   </footer>
 
 </body>
