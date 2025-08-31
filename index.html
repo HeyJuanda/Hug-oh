@@ -153,7 +153,9 @@ button:active {
   <!-- ====== Header ====== -->
   <header>
     <img src="hugw.svg" alt="Logo Hug-Oh">
-    <h1> </h1>
+    <!-- ====== Botón de Contacto ====== -->
+  <!-- ====== Botón de Contacto con SVG (Versión pequeña) ====== -->
+
   </header>
 
   <!-- ====== Hero ====== -->
@@ -178,6 +180,27 @@ button:active {
   <!-- ====== Footer ====== -->
   <footer>
     <p>© 2025 Hug-Oh • Desarrolladora Web • support@hug-oh.com</p>
+    <section class="contacto" style="text-align:center; margin-top:2rem;">
+  <h3 style="font-size:1rem;">¿Quieres contactarnos?</h3>
+
+  <!-- Botón Correo -->
+  <button onclick="window.location.href='mailto:support@hug-oh.com'" style="margin:0.3rem; padding:6px 12px; font-size:0.75rem; border-radius:12px;">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" width="16" height="16">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M16 12l-4-4-4 4m8 0l-4 4-4-4" />
+    </svg>
+    <span style="margin-left:4px;">Correo</span>
+  </button>
+
+  <!-- Botón Teléfono -->
+  <button onclick="window.location.href='tel:+50371174713'" style="margin:0.3rem; padding:6px 12px; font-size:0.75rem; border-radius:12px;">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" width="16" height="16">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.95.68l1.22 3.66a1 1 0 01-.27 1.05l-2.4 2.4a16.001 16.001 0 006.59 6.59l2.4-2.4a1 1 0 011.05-.27l3.66 1.22a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C9.16 21 3 14.84 3 7V5z" />
+    </svg>
+    <span style="margin-left:4px;">Llamar</span>
+  </button>
+</section>
   </footer>
 
 </body>
