@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Redirigiendo...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="logo.png">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #292828;
+      text-align: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      gap: 20px;
+    }
+
+    .content img {
+      width: 200px;
+      opacity: 80%;
+    }
+
+    /* Botón dentro del loader */
+    #redir-btn {
+  width: 130px;
+  height: 42px;
+  cursor: pointer;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 25px;
+  border: 3px solid transparent;
+  background: transparent;
+  background-image: linear-gradient(#292828, #292828), 
+                    linear-gradient(135deg, #0fb4ff, #ff4484, #ffeb3b, #ffffff);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  transition: 0.3s;
+  display: none;
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+}
+
+#redir-btn:hover {
+  color: #ffeb3b;
+  transform: translateX(-50%) scale(1.08);
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.6),
+              0 0 25px rgba(255, 68, 132, 0.5),
+              0 0 35px rgba(15, 180, 255, 0.4);
+}
+
+
+    /* Fondo de burbujas */
+    .bubbles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    .bubble {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      animation: animate_4010 8s ease-in-out infinite;
+    }
+
+    @keyframes animate_4010 {
+      0%,100% { transform: translateY(-20px); }
+      50% { transform: translateY(20px); }
+    }
+
+    .bubble span { position: absolute; border-radius: 50%; }
+    .bubble span:nth-child(1) { inset: 10px; border-left: 15px solid #0fb4ff; filter: blur(8px); }
+    .bubble span:nth-child(2) { inset: 10px; border-right: 15px solid #ff4484; filter: blur(8px); }
+    .bubble span:nth-child(3) { inset: 10px; border-top: 15px solid #ffeb3b; filter: blur(8px); }
+    .bubble span:nth-child(4) { inset: 30px; border-left: 15px solid #ff4484; filter: blur(12px); }
+    .bubble span:nth-child(5) { inset: 10px; border-bottom: 10px solid #fff; filter: blur(8px); transform: rotate(330deg); }
+
+    /* Loader con colores de burbujas */
+    .loader-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 180px;
+      height: 180px;
+      font-family: "Inter", sans-serif;
+      font-size: 1.2em;
+      font-weight: 300;
+      color: white;
+      border-radius: 50%;
+      background-color: transparent;
+      user-select: none;
+    }
+
+    .loader {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      background-color: transparent;
+      animation: loader-rotate 2s linear infinite;
+      z-index: 0;
+    }
+
+    @keyframes loader-rotate {
+      0% {
+        transform: rotate(90deg);
+        box-shadow: 0 10px 20px 0 #0fb4ff inset,
+                    0 20px 30px 0 #ff4486be inset,
+                    0 60px 60px 0 #ffffffa4 inset;
+      }
+      50% {
+        transform: rotate(270deg);
+        box-shadow: 0 10px 20px 0 #ffffff inset,
+                    0 20px 20px 0 #0fb3ff9a inset,
+                    0 40px 60px 0 #ff448698 inset;
+      }
+      100% {
+        transform: rotate(450deg);
+        box-shadow: 0 10px 20px 0 #0fb4ff inset,
+                    0 20px 30px 0 #ff448680 inset,
+                    0 60px 60px 0 #ffffff93 inset;
+      }
+    }
+
+    .loader-letter {
+      display: inline-block;
+      opacity: 0.4;
+      transform: translateY(0);
+      animation: loader-letter-anim 2s infinite;
+      z-index: 1;
+    }
+
+    .loader-letter:nth-child(n) { animation-delay: calc(0.1s * var(--i)); }
+
+    @keyframes loader-letter-anim {
+      0%,100% { opacity: 0.4; transform: translateY(0); }
+      20% { opacity: 1; transform: scale(1.15); }
+      40% { opacity: 0.7; transform: translateY(0); }
+    }
+  </style>
+  <script>
+    const destino = "pop.html";
+
+    window.onload = function() {
+      setTimeout(() => {
+        try {
+          window.location.href = destino;
+        } catch (e) {
+          document.getElementById("redir-btn").style.display = "block";
+        }
+      }, 6000);
+
+      setTimeout(() => {
+        document.getElementById("redir-btn").style.display = "block";
+      }, 4000);
+    };
+  </script>
+</head>
+<body>
+  <!-- Fondo de burbujas -->
+  <div class="bubbles">
+    <!-- Muchas burbujas con distintos tamaños -->
+    <div class="bubble" style="top:5%; left:5%;"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="bubble" style="top:20%; right:10%; zoom:0.6; animation-delay:-2s;"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="bubble" style="top:40%; left:15%; zoom:0.4; animation-delay:-4s;"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="bubble" style="top:60%; right:20%; zoom:0.7; animation-delay:-3s;"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="bubble" style="top:80%; left:50%; zoom:0.5; animation-delay:-5s;"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="bubble" style="top:10%; right:40%; zoom:0.3; animation-delay:-6s;"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="bubble" style="top:70%; left:70%; zoom:0.6; animation-delay:-1s;"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="bubble" style="top:30%; left:80%; zoom:0.4; animation-delay:-2.5s;"><span></span><span></span><span></span><span></span><span></span></div>
+    <!-- Extra burbujas -->
+    <div class="bubble" style="top:15%; left:60%; zoom:0.8; animation-delay:-3.5s;"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="bubble" style="top:50%; left:30%; zoom:0.5; animation-delay:-1.8s;"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="bubble" style="top:75%; left:10%; zoom:0.9; animation-delay:-4.2s;"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="bubble" style="top:85%; right:15%; zoom:0.7; animation-delay:-2.7s;"><span></span><span></span><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- Contenido -->
+  <div class="content">
+    <img onclick="window.location.href='index.html'" src="hugw.svg" alt="Logo HugW">
+
+    <!-- Loader con botón -->
+    <div class="loader-wrapper">
+      <span class="loader-letter" style="--i:1">R</span>
+      <span class="loader-letter" style="--i:2">e</span>
+      <span class="loader-letter" style="--i:3">d</span>
+      <span class="loader-letter" style="--i:4">i</span>
+      <span class="loader-letter" style="--i:5">r</span>
+      <span class="loader-letter" style="--i:6">i</span>
+      <span class="loader-letter" style="--i:7">g</span>
+      <span class="loader-letter" style="--i:8">i</span>
+      <span class="loader-letter" style="--i:9">e</span>
+      <span class="loader-letter" style="--i:10">n</span>
+      <span class="loader-letter" style="--i:11">d</span>
+      <span class="loader-letter" style="--i:12">o</span>
+      <div class="loader"></div>
+      <button id="redir-btn" onclick="window.location.href=destino">Ir ahora</button>
+    </div>
+  </div>
+</body>
+</html>
