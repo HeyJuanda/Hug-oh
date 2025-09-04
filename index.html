@@ -3,17 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hug-Oh • Desarrolladora Web</title>
-  <link rel="icon" href="hug.svg" type="image/svg+xml">
-  <link rel="shortcut icon" href="logo.png">
+  <title>Hug-XO • Tic Tac Toe</title>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: #292828;
       color: white;
-      overflow-x: hidden;
+      overflow: hidden;
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
 
     /* Fondo burbujas dinámico */
@@ -32,7 +34,7 @@
       bottom: -150px;
       border-radius: 50%;
       animation: rise 10s linear forwards;
-      cursor: pointer;
+      opacity: 0.9;
     }
 
     @keyframes rise {
@@ -48,31 +50,23 @@
     .bubble span:nth-child(4) { inset: 20px; border-left: 10px solid #ff4484; filter: blur(10px); }
     .bubble span:nth-child(5) { inset: 10px; border-bottom: 8px solid #fff; filter: blur(6px); transform: rotate(330deg); }
 
-    /* Explosión */
-    .pop {
-      animation: pop 0.4s forwards;
-    }
-
-    @keyframes pop {
-      to {
-        transform: scale(1.6);
-        opacity: 0;
-      }
-    }
-
+    /* Header con logo */
     header {
-      position: relative;
-      z-index: 2;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      background: rgba(0,0,0,0.3);
-      backdrop-filter: blur(6px);
-    }
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between; /* Logo a la izq, scoreboard a la der */
+  align-items: center;
+  padding: 1rem 2rem;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(6px);
+  z-index: 5;
+}
 
     header img {
-      height: 50px;
+      height: 60px;
       animation: pulse-glow 3s infinite ease-in-out;
     }
 
@@ -81,123 +75,87 @@
       50% { transform: scale(1.1); filter: drop-shadow(0 0 15px #ff4484); }
     }
 
-    .hero {
+    /* Contenedor central */
+    .container {
       position: relative;
       z-index: 2;
-      text-align: center;
-      padding: 4rem 2rem;
-      opacity: 0;
-      transform: translateY(50px);
-      animation: fadeSlide 1.5s ease forwards;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
-    @keyframes fadeSlide {
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .hero h2 {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .hero p {
-      font-size: 1.2rem;
-      max-width: 600px;
-      margin: auto;
-    }
-
-    .links-section {
-      position: relative;
-      z-index: 2;
-      text-align: center;
-      margin-top: 2rem;
-    }
-
-    .links-grid {
+    /* Tablero */
+    .game {
+      margin-top: 20px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      padding: 1rem;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 8px;
     }
 
-    .link-card {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 0.8rem;
-      padding: 1rem;
-      text-align: center;
-      transition: transform 0.3s, box-shadow 0.3s;
-      animation: popIn 0.8s ease forwards;
-      margin-left: 20px;
-      margin-right: 20px;
-    }
-
-    .link-card:nth-child(1) { animation-delay: 0.3s; }
-    .link-card:nth-child(2) { animation-delay: 0.6s; }
-    .link-card:nth-child(3) { animation-delay: 0.9s; }
-
-    @keyframes popIn {
-      0% { transform: scale(0.8); opacity: 0; }
-      80% { transform: scale(1.05); opacity: 1; }
-      100% { transform: scale(1); }
-    }
-
-    .link-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 0 20px rgba(255,255,255,0.2);
-    }
-
-    .link-card h4 {
-      font-size: 1.2rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .link-card p {
-      font-size: 0.9rem;
-      color: #e0e0e0;
-      margin-bottom: 0.8rem;
-    }
-
-    .link-card button {
-      width: 130px;
-      height: 42px;
-      cursor: pointer;
-      color: #fff;
-      font-size: 15px;
+    .cell {
+      width: 100px;
+      height: 100px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2.5rem;
       font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .cell:hover {
+      transform: scale(1.1);
+      background: rgba(255,255,255,0.15);
+    }
+
+    .cell.taken {
+      pointer-events: none;
+    }
+
+    /* Indicador de turno y reinicio */
+    .status {
+      margin-top: 20px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      text-shadow: 0 0 10px #0fb4ff;
+      z-index: 2;
+    }
+
+    /* Puntuador */
+.scoreboard {
+  display: flex;
+  gap: 30px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-right: 60px;
+}
+
+    .reset {
+      margin-top: 20px;
+      padding: 10px 20px;
       border-radius: 25px;
       border: 3px solid transparent;
-      background: transparent;
       background-image: linear-gradient(#292828, #292828),
                         linear-gradient(135deg, #0fb4ff, #ff4484, #ffeb3b, #ffffff);
       background-origin: border-box;
       background-clip: padding-box, border-box;
-      transition: 0.3s;
-      box-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
-    }
-
-    .link-card button:hover {
-      color: #ffeb3b;
-      transform: scale(1.08);
-      box-shadow: 0 0 18px rgba(255, 255, 255, 0.6),
-                  0 0 25px rgba(255, 68, 132, 0.5),
-                  0 0 35px rgba(15, 180, 255, 0.4);
-    }
-
-    footer {
-      position: relative;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.3s;
       z-index: 2;
-      text-align: center;
-      padding: 1rem;
-      background: rgba(0,0,0,0.4);
-      margin-top: 2rem;
-      opacity: 0;
-      transform: translateY(30px);
-      animation: footerIn 1s ease forwards;
-      animation-delay: 1.5s;
     }
 
-    @keyframes footerIn {
-      to { opacity: 1; transform: translateY(0); }
+    .reset:hover {
+      transform: scale(1.1);
+      color: #ffeb3b;
+      box-shadow: 0 0 15px rgba(255,255,255,0.6),
+                  0 0 25px rgba(255,68,132,0.5),
+                  0 0 35px rgba(15,180,255,0.4);
     }
   </style>
 </head>
@@ -205,82 +163,115 @@
   <!-- Fondo burbujas -->
   <div class="bubbles" id="bubbles"></div>
 
-  <!-- Header -->
+  <!-- Header con logo -->
   <header>
-    <img src="hugw.svg" alt="Logo Hug-Oh">
+    <img onclick="window.location.href='index.html'" src="hugw.svg" alt="Logo Hug-Oh">
+    <div class="scoreboard">
+      <div>Equipo X: <span id="scoreX">0</span></div>
+      <div>Equipo O: <span id="scoreO">0</span></div>
+    </div>
   </header>
 
-  <!-- Hero -->
-  <section class="hero">
-    <h2>Desarrolladora Web</h2>
-    <p>Transformamos ideas en experiencias digitales con pasión, creatividad y tecnología.</p>
-  </section>
+  <!-- Contenedor central -->
+  <div class="container">
+    <div class="game" id="game"></div>
+    <div class="status" id="status">Turno: X</div>
 
-  <!-- Links -->
-  <section class="links-section">
-    <h3>Proyectos y Links de <img src="hugw.svg" class="linkm" style="height:20px;vertical-align:middle;"></h3>
-    <div class="links-grid">
-      <div class="link-card">
-        <h4>Habla Historia</h4>
-        <p>Proyecto educativo de narrativa histórica.</p>
-        <button onclick="window.location.href='https://cecsa.hablahistoria.lat'">Visitar</button>
-      </div>
-      <div class="link-card">
-        <h4>Hug-Pop!</h4>
-        <p>Revienta miles de burbujas</p>
-        <button onclick="window.location.href='ree.html'">Visitar</button>
-      </div>
-    </div>
-    <div class="link-card">
-        <h4>Hug-XO!</h4>
-        <p>Juega 3 en rayas!</p>
-        <button onclick="window.location.href='xo.html'">Visitar</button>
-      </div>
-    </div>
-  </section>
-  <!-- Footer -->
-  <footer>
-    <p>© 2025 Hug-Oh • Desarrolladora Web • support@hug-oh.com</p>
-  </footer>
+    <!-- Puntuador -->
+
+    <button class="reset" onclick="resetGame()">Reiniciar Ronda</button>
+  </div>
 
   <script>
-    const bubblesContainer = document.getElementById("bubbles");
+    const gameContainer = document.getElementById("game");
+    const statusEl = document.getElementById("status");
+    const scoreXEl = document.getElementById("scoreX");
+    const scoreOEl = document.getElementById("scoreO");
 
+    let currentPlayer = "X";
+    let board = Array(9).fill(null);
+    let scoreX = 0;
+    let scoreO = 0;
+
+    // Crear tablero
+    function createBoard() {
+      gameContainer.innerHTML = "";
+      board.forEach((cell, index) => {
+        const div = document.createElement("div");
+        div.classList.add("cell");
+        div.addEventListener("click", () => makeMove(index, div));
+        gameContainer.appendChild(div);
+      });
+    }
+
+    function makeMove(index, div) {
+      if (!board[index]) {
+        board[index] = currentPlayer;
+        div.textContent = currentPlayer;
+        div.classList.add("taken");
+        if (checkWinner()) {
+          statusEl.textContent = `¡Ganó ${currentPlayer}! 🎉`;
+          if (currentPlayer === "X") {
+            scoreX++;
+            scoreXEl.textContent = scoreX;
+          } else {
+            scoreO++;
+            scoreOEl.textContent = scoreO;
+          }
+          endGame();
+        } else if (board.every(cell => cell)) {
+          statusEl.textContent = "¡Empate! 🤝";
+        } else {
+          currentPlayer = currentPlayer === "X" ? "O" : "X";
+          statusEl.textContent = `Turno: ${currentPlayer}`;
+        }
+      }
+    }
+
+    function checkWinner() {
+      const combos = [
+        [0,1,2], [3,4,5], [6,7,8], // filas
+        [0,3,6], [1,4,7], [2,5,8], // columnas
+        [0,4,8], [2,4,6]           // diagonales
+      ];
+      return combos.some(([a,b,c]) => board[a] && board[a] === board[b] && board[a] === board[c]);
+    }
+
+    function endGame() {
+      document.querySelectorAll(".cell").forEach(cell => cell.classList.add("taken"));
+    }
+
+    function resetGame() {
+      board = Array(9).fill(null);
+      currentPlayer = "X";
+      statusEl.textContent = `Turno: ${currentPlayer}`;
+      createBoard();
+    }
+
+    // Inicializar
+    createBoard();
+
+    // Burbujas de fondo
+    const bubblesContainer = document.getElementById("bubbles");
     function createBubble() {
       const bubble = document.createElement("div");
       bubble.classList.add("bubble");
       bubble.style.left = Math.random() * 100 + "vw";
-      const size = Math.random() * 80 + 40;
+      const size = Math.random() * 60 + 20;
       bubble.style.width = bubble.style.height = size + "px";
       bubble.style.animationDuration = (Math.random() * 5 + 6) + "s";
 
-      // Añadir spans internos
       for (let i = 0; i < 5; i++) {
         const span = document.createElement("span");
         bubble.appendChild(span);
       }
 
-      // Explosión al hacer clic
-      bubble.addEventListener("click", () => {
-        bubble.classList.add("pop");
-        setTimeout(() => bubble.remove(), 400);
-      });
-
       bubblesContainer.appendChild(bubble);
-
-      // Borrar al terminar animación
-      setTimeout(() => {
-        bubble.remove();
-      }, 12000);
+      setTimeout(() => bubble.remove(), 12000);
     }
 
-    // Crear burbujas iniciales (para que no esté vacío)
-    for (let i = 0; i < 10; i++) {
-      setTimeout(createBubble, i * 300);
-    }
-
-    // Generar burbujas constantemente
     setInterval(createBubble, 1000);
+    for (let i = 0; i < 10; i++) setTimeout(createBubble, i * 300);
   </script>
 </body>
 </html>
