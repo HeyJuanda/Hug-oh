@@ -38,8 +38,10 @@
       -webkit-text-fill-color: transparent; 
     }
     input { width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 8px; font-size: 1rem; }
+    
     .btn {
-      width: 100%; padding: 12px;
+      flex: 1;
+      padding: 12px;
       background: transparent;
       border: 3px solid transparent;
       border-radius: 25px;
@@ -51,7 +53,7 @@
       background-clip: padding-box, border-box;
       transition: 0.3s;
       box-shadow: 0 0 12px rgba(255,255,255,0.2);
-      margin-top: 15px;
+      margin: 10px 5px 0;
     }
     .btn:hover {
       color: #ffeb3b;
@@ -59,6 +61,13 @@
       box-shadow: 0 0 18px rgba(255,255,255,0.6),
                   0 0 25px rgba(255,68,132,0.5),
                   0 0 35px rgba(15,180,255,0.4);
+    }
+
+    /* Contenedor de botones */
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
     }
   </style>
 </head>
@@ -70,13 +79,16 @@
     <h2>Iniciar Sesión</h2>
     <input type="text" id="email" placeholder="Correo">
     <input type="password" id="password" placeholder="Contraseña">
-    <button id="loginBtn" class="btn">Entrar</button>
+    <div class="btn-group">
+      <button id="loginBtn" class="btn">Entrar</button>
+      <button id="registerBtn" class="btn">Registrarse</button>
+    </div>
   </div>
 
   <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBDPtxo52XQOeBpKRv1ZIrbcNrfTMsQpdY",
@@ -90,27 +102,39 @@
     const auth = getAuth(app);
 
     const loginBtn = document.getElementById("loginBtn");
+    const registerBtn = document.getElementById("registerBtn");
+
     loginBtn.addEventListener("click", async () => {
       const email = document.getElementById("email").value;
       const pass = document.getElementById("password").value;
       try {
         await signInWithEmailAndPassword(auth, email, pass);
-        window.location.href = "adds.html"; // Redirigir al panel
+        window.location.href = "adds.html";
       } catch (err) {
         alert("Error: " + err.message);
       }
     });
 
-    // Si ya está logeado, entrar directo
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    // Solo redirige si realmente quieres entrar al panel
-    if (window.location.pathname.endsWith("login.html")) {
-      window.location.href = "adds.html";
-    }
-  }
-});
+    registerBtn.addEventListener("click", async () => {
+      const email = document.getElementById("email").value;
+      const pass = document.getElementById("password").value;
+      if (!email || !pass) return alert("Completa correo y contraseña");
+      try {
+        await createUserWithEmailAndPassword(auth, email, pass);
+        alert("Cuenta creada con éxito ✅");
+        window.location.href = "adds.html";
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    });
 
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        if (window.location.pathname.endsWith("login.html")) {
+          window.location.href = "adds.html";
+        }
+      }
+    });
   </script>
 
   <!-- Burbujas -->
