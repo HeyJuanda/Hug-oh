@@ -177,7 +177,7 @@
   <!-- Contenido -->
   <main>
     <h1>Gestión de Anuncios</h1>
-    <p class="subtitle">Sube, administra y espera la aprobación de Support.</p>
+    <p class="subtitle">Sube, administra y elimina tus anuncios fácilmente.</p>
 
     <!-- Formulario -->
     <div class="card">
@@ -200,152 +200,124 @@
   </main>
 
   <!-- Firebase + JS -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBDPtxo52XQOeBpKRv1ZIrbcNrfTMsQpdY",
-      authDomain: "hug-0h.firebaseapp.com",
-      projectId: "hug-0h",
-      storageBucket: "hug-0h.firebasestorage.app",
-      messagingSenderId: "244700876607",
-      appId: "1:244700876607:web:d6bf0054241cc974900d8a"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+  const firebaseConfig = {
+    apiKey: "AIzaSyBDPtxo52XQOeBpKRv1ZIrbcNrfTMsQpdY",
+    authDomain: "hug-0h.firebaseapp.com",
+    projectId: "hug-0h",
+    storageBucket: "hug-0h.firebasestorage.app",
+    messagingSenderId: "244700876607",
+    appId: "1:244700876607:web:d6bf0054241cc974900d8a"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
 
-    const adsRef = collection(db, "images_base64");
-    const fileInput = document.getElementById("file");
-    const titleInput = document.getElementById("title");
-    const linkInput = document.getElementById("linkUrl");
-    const uploadBtn = document.getElementById("uploadBtn");
-    const adsContainer = document.getElementById("adsContainer");
-    const logoutBtn = document.getElementById("logoutBtn");
+  const adsRef = collection(db, "images_base64");
+  const fileInput = document.getElementById("file");
+  const titleInput = document.getElementById("title");
+  const linkInput = document.getElementById("linkUrl");
+  const uploadBtn = document.getElementById("uploadBtn");
+  const adsContainer = document.getElementById("adsContainer");
+  const logoutBtn = document.getElementById("logoutBtn");
 
-    let currentUser = null;
+  let currentUser = null;
 
-    // Redirigir si no hay sesión
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        currentUser = user;
-        logoutBtn.style.display = "block";
-      } else {
-        if (!window.location.pathname.endsWith("login.html")) {
-          window.location.href = "login.html";
-        }
+  // Redirigir si no hay sesión
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      logoutBtn.style.display = "block";
+    } else {
+      if (!window.location.pathname.endsWith("login.html")) {
+        window.location.href = "login.html";
       }
-    });
-
-    // Cerrar sesión
-    logoutBtn.addEventListener("click", async () => {
-      await signOut(auth);
-      window.location.href = "login.html";
-    });
-
-    // Convertir archivo en Base64
-    function fileToBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
     }
-
-    // Subir anuncio (queda pendiente de aprobación)
-    uploadBtn.addEventListener("click", async () => {
-      const file = fileInput.files[0];
-      if (!file) return alert("Selecciona una imagen");
-      if (!linkInput.value.startsWith("http")) return alert("La URL debe empezar con http o https");
-
-      const base64 = await fileToBase64(file);
-      const title = titleInput.value || "Anuncio";
-
-      try {
-        await addDoc(adsRef, { 
-          title, 
-          base64, 
-          linkUrl: linkInput.value, 
-          createdAt: new Date().toISOString(),
-          uid: currentUser.uid,
-          email: currentUser.email,
-          status: "pending"
-        });
-        fileInput.value = ""; titleInput.value = ""; linkInput.value = "";
-        alert("Tu anuncio fue enviado para revisión. Support debe aprobarlo.");
-      } catch (err) {
-        console.error(err);
-        alert("Error al guardar el anuncio.");
-      }
-    });
-
-    // Mostrar anuncios
-   // Mostrar anuncios
-onSnapshot(adsRef, (snapshot) => {
-  adsContainer.innerHTML = "";
-  snapshot.forEach(docSnap => {
-    const ad = docSnap.data();
-
-    // 🔥 Si no hay status, lo tratamos como pending
-    const status = ad.status || "pending";
-
-    // Solo mostrar aprobados a todos, excepto a support
-    if (status !== "approved" && currentUser?.email !== "support@hug-oh.com") return;
-
-    const adDiv = document.createElement("div");
-    adDiv.classList.add("ad");
-    adDiv.innerHTML = `
-      <a href="${ad.linkUrl}" target="_blank">
-        <img src="${ad.base64}" alt="${ad.title}">
-      </a>
-      <div class="ad-title">${ad.title}</div>
-      <p style="font-size:12px; color:#aaa;">Estado: ${status}</p>
-    `;
-
-    // Botones solo para support
-    if (currentUser?.email === "support@hug-oh.com") {
-      const actions = document.createElement("div");
-      actions.classList.add("btn-wrap");
-
-      if (status === "pending") {
-        const approveBtn = document.createElement("button");
-        approveBtn.classList.add("btn");
-        approveBtn.textContent = "✅ Aprobar";
-        approveBtn.onclick = async () => {
-          await updateDoc(doc(db, "images_base64", docSnap.id), { status: "approved" });
-        };
-        actions.appendChild(approveBtn);
-
-        const rejectBtn = document.createElement("button");
-        rejectBtn.classList.add("btn");
-        rejectBtn.textContent = "❌ Rechazar";
-        rejectBtn.onclick = async () => {
-          await updateDoc(doc(db, "images_base64", docSnap.id), { status: "rejected" });
-        };
-        actions.appendChild(rejectBtn);
-      }
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.classList.add("btn", "btn-delete");
-      deleteBtn.textContent = "🗑 Eliminar";
-      deleteBtn.onclick = async () => {
-        if (confirm("¿Eliminar este anuncio?")) {
-          await deleteDoc(doc(db, "images_base64", docSnap.id));
-        }
-      };
-      actions.appendChild(deleteBtn);
-
-      adDiv.appendChild(actions);
-    }
-
-    adsContainer.appendChild(adDiv);
   });
-});
-  </script>
 
+  // Cerrar sesión
+  logoutBtn.addEventListener("click", async () => {
+    await signOut(auth);
+    window.location.href = "login.html";
+  });
+
+  // Convertir archivo en Base64
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Subir anuncio con pago simulado de $1
+  uploadBtn.addEventListener("click", async () => {
+    const file = fileInput.files[0];
+    if (!file) return alert("Selecciona una imagen");
+    if (!linkInput.value.startsWith("http")) return alert("La URL debe empezar con http o https");
+
+    // Simulación de cobro
+    const pagar = confirm("Publicar un anuncio cuesta $1. ¿Deseas continuar?");
+    if (!pagar) return;
+
+    const base64 = await fileToBase64(file);
+    const title = titleInput.value || "Anuncio";
+
+    try {
+      await addDoc(adsRef, { 
+        title, 
+        base64, 
+        linkUrl: linkInput.value, 
+        createdAt: new Date().toISOString(),
+        uid: currentUser.uid,     // Guardar propietario
+        email: currentUser.email  // Guardar correo
+      });
+      fileInput.value = ""; titleInput.value = ""; linkInput.value = "";
+    } catch (err) {
+      console.error(err);
+      alert("Error al guardar el anuncio.");
+    }
+  });
+
+  // Mostrar anuncios con restricción de borrado
+  onSnapshot(adsRef, (snapshot) => {
+    adsContainer.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const ad = docSnap.data();
+      const adDiv = document.createElement("div");
+      adDiv.classList.add("ad");
+      adDiv.innerHTML = `
+        <a href="${ad.linkUrl}" target="_blank">
+          <img src="${ad.base64}" alt="${ad.title}">
+        </a>
+        <div class="ad-title">${ad.title}</div>
+      `;
+
+      // Botón de eliminar solo si el usuario es dueño o support
+      if (currentUser && (currentUser.uid === ad.uid || currentUser.email === "support@hug-oh.com")) {
+        const deleteBtn = document.createElement("button");
+        deleteBtn.classList.add("btn", "btn-delete");
+        deleteBtn.textContent = "🗑 Eliminar";
+        deleteBtn.onclick = async () => {
+          if (confirm("¿Eliminar este anuncio?")) {
+            await deleteDoc(doc(db, "images_base64", docSnap.id));
+          }
+        };
+        const wrap = document.createElement("div");
+        wrap.classList.add("btn-wrap");
+        wrap.appendChild(deleteBtn);
+        adDiv.appendChild(wrap);
+      }
+
+      adsContainer.appendChild(adDiv);
+    });
+  });
+</script>
   <!-- Burbujas -->
   <script>
     const bubblesContainer = document.getElementById("bubbles");
