@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hug-Pop! • Juego de Burbujas</title>
-  <link rel="shortcut icon" href="logo.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hug-Pop! • Revienta Burbujas</title>
+  <link rel="shortcut icon" href="logo.png" />
   <style>
     body {
       margin: 0;
@@ -14,95 +14,131 @@
       overflow: hidden;
       min-height: 100vh;
     }
-
-    /* Fondo burbujas dinámico */
+    /* Fondo burbujas */
     .bubbles {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-      z-index: 0;
-      overflow: hidden;
+      position: fixed; width: 100%; height: 100%;
+      top: 0; left: 0; z-index: 0; overflow: hidden;
     }
-
     .bubble {
-      position: absolute;
-      bottom: -150px;
-      border-radius: 50%;
-      animation: rise 10s linear forwards;
-      cursor: pointer;
+      position: absolute; bottom: -150px; border-radius: 50%;
+      animation: rise 10s linear forwards; cursor: pointer;
     }
-
     @keyframes rise {
       0% { transform: translateY(0) scale(1); opacity: 0.8; }
       90% { opacity: 1; }
       100% { transform: translateY(-120vh) scale(1.2); opacity: 0; }
     }
-
     .bubble span { position: absolute; border-radius: 50%; }
-    .bubble span:nth-child(1) { inset: 10px; border-left: 10px solid #0fb4ff; filter: blur(6px); }
-    .bubble span:nth-child(2) { inset: 10px; border-right: 10px solid #ff4484; filter: blur(6px); }
-    .bubble span:nth-child(3) { inset: 10px; border-top: 10px solid #ffeb3b; filter: blur(6px); }
-    .bubble span:nth-child(4) { inset: 20px; border-left: 10px solid #ff4484; filter: blur(10px); }
-    .bubble span:nth-child(5) { inset: 10px; border-bottom: 8px solid #fff; filter: blur(6px); transform: rotate(330deg); }
-
+    /* Colores normales */
+    .bubble span:nth-child(1){ inset:10px; border-left:10px solid #0fb4ff; filter:blur(6px); }
+    .bubble span:nth-child(2){ inset:10px; border-right:10px solid #ff4484; filter:blur(6px); }
+    .bubble span:nth-child(3){ inset:10px; border-top:10px solid #ffeb3b; filter:blur(6px); }
+    .bubble span:nth-child(4){ inset:20px; border-left:10px solid #ff4484; filter:blur(10px); }
+    .bubble span:nth-child(5){ inset:10px; border-bottom:8px solid #fff; filter:blur(6px); transform:rotate(330deg); }
+    /* Colores de bomba */
+    .bomb span:nth-child(1){ inset:10px; border-left:10px solid #ff4d4d; filter:blur(6px); }
+    .bomb span:nth-child(2){ inset:10px; border-right:10px solid #ff1a1a; filter:blur(6px); }
+    .bomb span:nth-child(3){ inset:10px; border-top:10px solid #e60000; filter:blur(6px); }
+    .bomb span:nth-child(4){ inset:20px; border-left:10px solid #b30000; filter:blur(10px); }
+    .bomb span:nth-child(5){ inset:10px; border-bottom:8px solid #ff6666; filter:blur(6px); transform:rotate(330deg); }
     /* Explosión */
-    .pop {
-      animation: pop 0.4s forwards;
+    .spark {
+      position: absolute; width:10px; height:10px; border-radius:50%;
+      opacity: 0.9; filter: blur(2px); animation: explode 0.8s forwards; pointer-events:none;
     }
-
-    @keyframes pop {
-      to {
-        transform: scale(1.6);
-        opacity: 0;
-      }
+    @keyframes explode {
+      to { transform: translate(var(--x), var(--y)) scale(0.3); opacity: 0; }
     }
-
     /* Puntuación */
     .scoreboard {
-      position: fixed;
-      top: 15px;
-      right: 20px;
-      background: rgba(0,0,0,0.5);
-      padding: 10px 20px;
-      border-radius: 10px;
-      font-size: 1.2rem;
-      font-weight: bold;
-      z-index: 5;
+      position: fixed; top: 15px; right: 20px;
+      background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 10px;
+      font-size: 1.2rem; font-weight: bold; z-index: 5;
     }
-
-    /* Header con logo */
+    /* Header */
     header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      display: flex;
-      justify-content: flex-start;
-      align-items: center;
-      padding: 1rem 2rem;
-      background: rgba(0,0,0,0.3);
-      backdrop-filter: blur(6px);
-      z-index: 5;
+      position: fixed; top:0; left:0; width:100%;
+      display:flex; justify-content:flex-start; align-items:center;
+      padding:1rem 2rem; background:rgba(0,0,0,0.3); backdrop-filter: blur(6px); z-index:5;
     }
-
-    header img {
-      height: 60px;
-      animation: pulse-glow 3s infinite ease-in-out;
-    }
-
+    header img { height:60px; animation: pulse-glow 3s infinite ease-in-out; cursor:pointer; }
     @keyframes pulse-glow {
       0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px #0fb4ff); }
       50% { transform: scale(1.1); filter: drop-shadow(0 0 15px #ff4484); }
     }
+    /* Pantalla final */
+    .game-over {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      display: none; justify-content: center; align-items: center; flex-direction: column;
+      font-size: 2rem; z-index: 10;
+    }
+    /* Botón */
+    .reset {
+      margin-top: 20px; padding: 10px 20px; border-radius: 25px; border: 3px solid transparent;
+      background-image: linear-gradient(#292828, #292828),
+                        linear-gradient(135deg, #0fb4ff, #ff4484, #ffeb3b, #ffffff);
+      background-origin: border-box; background-clip: padding-box, border-box;
+      color: white; cursor: pointer; font-weight: bold; transition: transform 0.3s;
+    }
+    .reset:hover {
+      transform: scale(1.1); color: #ffeb3b;
+      box-shadow: 0 0 15px rgba(255,255,255,0.6),
+                  0 0 25px rgba(255,68,132,0.5),
+                  0 0 35px rgba(15,180,255,0.4);
+    }
+    /* Overlay anuncio */
+    .overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 999;
+    }
+    .overlay img {
+      align-items: center;
+      border-radius: 15px;
+      max-width: 100%;
+      max-height: 90%;
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
+    }
+    #closeOverlay {
+  position: absolute;
+  bottom: 50px; /* lo mantenemos en la parte baja */
+  padding: 10px 20px;
+  border-radius: 25px;
+  border: 3px solid transparent;
+  background-image: linear-gradient(#292828, #292828),
+                    linear-gradient(135deg, #0fb4ff, #ff4484, #ffeb3b, #ffffff);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s, box-shadow 0.3s, color 0.3s;
+}
+
+#closeOverlay:hover {
+  transform: scale(1.1);
+  color: #ffeb3b;
+  box-shadow: 0 0 15px rgba(255,255,255,0.6),
+              0 0 25px rgba(255,68,132,0.5),
+              0 0 35px rgba(15,180,255,0.4);
+}
   </style>
 </head>
 <body>
   <!-- Fondo burbujas -->
   <div class="bubbles" id="bubbles"></div>
 
-  <!-- Header con logo -->
+  <!-- Header -->
   <header>
     <img onclick="window.location.href='index.html'" src="hugw.svg" alt="Logo Hug-Oh">
   </header>
@@ -110,12 +146,34 @@
   <!-- Marcador -->
   <div class="scoreboard">Puntos: <span id="score">0</span></div>
 
-  <script>
+  <!-- Pantalla final -->
+  <div class="game-over" id="gameOver">
+    <p id="finalScore"></p>
+    <button class="reset" id="startBtn">Nueva Partida</button>
+  </div>
+
+  <!-- Overlay de anuncio -->
+  <div class="overlay" id="overlay">
+    <a id="overlayLink" target="_blank">
+      <img id="overlayImage" src="" alt="Anuncio">
+    </a>
+    <button class="reset" id="closeOverlay">✕</button>
+  </div>
+
+  <script type="module">
+    // ==== Juego ====
     const bubblesContainer = document.getElementById("bubbles");
     const scoreElement = document.getElementById("score");
+    const gameOverScreen = document.getElementById("gameOver");
+    const finalScoreElement = document.getElementById("finalScore");
+    const startBtn = document.getElementById("startBtn");
+
     let score = 0;
+    let gameEnded = false;
 
     function createBubble() {
+      if (gameEnded) return;
+
       const bubble = document.createElement("div");
       bubble.classList.add("bubble");
       bubble.style.left = Math.random() * 100 + "vw";
@@ -123,35 +181,126 @@
       bubble.style.width = bubble.style.height = size + "px";
       bubble.style.animationDuration = (Math.random() * 5 + 6) + "s";
 
-      // Añadir spans internos
-      for (let i = 0; i < 5; i++) {
-        const span = document.createElement("span");
-        bubble.appendChild(span);
+      for (let i = 0; i < 5; i++) bubble.appendChild(document.createElement("span"));
+
+      const isBomb = Math.random() < 0.2;
+      if (isBomb) {
+        bubble.classList.add("bomb");
+        bubble.addEventListener("click", () => endGame());
+      } else {
+        bubble.addEventListener("click", (e) => {
+          explodeBubble(bubble, e.clientX, e.clientY, false);
+          score++;
+          scoreElement.textContent = score;
+        });
       }
 
-      // Explosión al hacer clic
-      bubble.addEventListener("click", () => {
-        bubble.classList.add("pop");
-        score++;
-        scoreElement.textContent = score;
-        setTimeout(() => bubble.remove(), 400);
-      });
-
       bubblesContainer.appendChild(bubble);
-
-      // Borrar al terminar animación
-      setTimeout(() => {
-        bubble.remove();
-      }, 12000);
+      setTimeout(() => bubble.remove(), 12000);
     }
 
-    // Crear burbujas iniciales
-    for (let i = 0; i < 10; i++) {
-      setTimeout(createBubble, i * 300);
+    function explodeBubble(bubble, x, y, isBomb) {
+      const rect = bubble.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const colors = isBomb
+        ? ["#ff4d4d", "#ff1a1a", "#e60000", "#b30000", "#ff6666"]
+        : ["#0fb4ff", "#ff4484", "#ffeb3b", "#ffffff"];
+
+      for (let i = 0; i < 14; i++) {
+        const spark = document.createElement("div");
+        spark.classList.add("spark");
+        spark.style.left = centerX + "px";
+        spark.style.top = centerY + "px";
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        spark.style.background = color;
+        spark.style.boxShadow = `0 0 8px ${color}, 0 0 15px ${color}`;
+
+        const angle = Math.random() * 2 * Math.PI;
+        const distance = Math.random() * 90 + 30;
+        spark.style.setProperty("--x", `${Math.cos(angle) * distance}px`);
+        spark.style.setProperty("--y", `${Math.sin(angle) * distance}px`);
+
+        document.body.appendChild(spark);
+        setTimeout(() => spark.remove(), 800);
+      }
+
+      bubble.remove();
     }
 
-    // Generar burbujas constantemente
+    function endGame() {
+      gameEnded = true;
+      document.querySelectorAll(".bubble").forEach(b => b.remove());
+      finalScoreElement.textContent = `Puntaje Final: ${score}`;
+      gameOverScreen.style.display = "flex";
+    }
+
+    function restartGame() {
+      score = 0;
+      scoreElement.textContent = score;
+      gameEnded = false;
+      gameOverScreen.style.display = "none";
+      for (let i = 0; i < 10; i++) setTimeout(createBubble, i * 300);
+      // Mostrar anuncio al reiniciar
+      showAd();
+    }
+
+    // Habilitar botón (evita el problema del scope en módulos)
+    startBtn.addEventListener("click", restartGame);
+    // Si alguna vez vuelves a usar onclick en HTML, esto lo habilita:
+    window.restartGame = restartGame;
+
+    // Generación inicial
+    for (let i = 0; i < 10; i++) setTimeout(createBubble, i * 300);
     setInterval(createBubble, 1000);
+
+    // ==== Anuncios (Firebase, con import dinámico y tolerancia a fallos) ====
+    let ads = [];
+    const overlay = document.getElementById("overlay");
+    const overlayImage = document.getElementById("overlayImage");
+    const overlayLink = document.getElementById("overlayLink");
+    const closeOverlay = document.getElementById("closeOverlay");
+
+    function showAd() {
+      if (ads.length > 0) {
+        const ad = ads[Math.floor(Math.random() * ads.length)];
+        overlayImage.src = ad.base64;
+        overlayLink.href = ad.linkUrl || "#";
+        overlay.style.display = "flex";
+        closeOverlay.style.display = "none";
+        setTimeout(() => { closeOverlay.style.display = "flex"; }, 1000);
+      }
+    }
+
+    closeOverlay.addEventListener("click", () => {
+      overlay.style.display = "none";
+    });
+
+    // Carga de Firebase: si falla, el juego sigue funcionando (solo sin anuncios)
+    try {
+      const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js");
+      const { getFirestore, collection, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js");
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBDPtxo52XQOeBpKRv1ZIrbcNrfTMsQpdY",
+        authDomain: "hug-0h.firebaseapp.com",
+        projectId: "hug-0h",
+        storageBucket: "hug-0h.firebasestorage.app",
+        messagingSenderId: "244700876607",
+        appId: "1:244700876607:web:d6bf0054241cc974900d8a"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const adsRef = collection(db, "images_base64");
+
+      onSnapshot(adsRef, (snapshot) => {
+        ads = snapshot.docs.map(doc => doc.data());
+      });
+    } catch (err) {
+      console.warn("No se pudieron cargar los anuncios de Firebase. El juego funcionará sin anuncios.", err);
+    }
   </script>
 </body>
 </html>
