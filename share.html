@@ -355,7 +355,7 @@
                 if (pathUserId) {
                     renderPublicProfilePage(pathUserId);
                 } else {
-                    renderLoginPage();
+                    window.location.href = "slogin.html";
                 }
             }
         });
@@ -372,7 +372,7 @@
                 if (pathUserId) {
                     renderPublicProfilePage(pathUserId);
                 } else {
-                    renderLoginPage();
+                    window.location.href = "share-login.html";
                 }
             }
         });
@@ -402,51 +402,7 @@
                 authUi.innerHTML = `
                     <button id="login-btn" class="btn">Iniciar Sesión</button>
                 `;
-                document.getElementById('login-btn').addEventListener('click', renderLoginPage);
-            }
-        }
-
-        function renderLoginPage() {
-            appContainer.innerHTML = `
-                <div class="flex flex-col items-center justify-center p-8">
-                    <div class="w-full max-w-md p-8 card">
-                        <h3 class="text-xl font-semibold mb-4 text-center">Inicia Sesión o Regístrate</h3>
-                        <input type="email" id="email-input" placeholder="Correo electrónico" class="w-full p-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 mb-4"/>
-                        <input type="password" id="password-input" placeholder="Contraseña" class="w-full p-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 mb-4"/>
-                        <button id="signin-btn" class="btn w-full mb-2">Iniciar Sesión</button>
-                        <button id="signup-btn" class="btn w-full">Registrarse</button>
-                    </div>
-                </div>
-            `;
-            document.getElementById('signin-btn').addEventListener('click', handleSignIn);
-            document.getElementById('signup-btn').addEventListener('click', handleSignUp);
-        }
-
-        async function handleSignIn() {
-            const email = document.getElementById('email-input').value;
-            const password = document.getElementById('password-input').value;
-            showLoading(true);
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                showMessage('¡Sesión iniciada con éxito!');
-            } catch (error) {
-                showMessage('Error al iniciar sesión. Verifica tus datos.');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        async function handleSignUp() {
-            const email = document.getElementById('email-input').value;
-            const password = document.getElementById('password-input').value;
-            showLoading(true);
-            try {
-                await createUserWithEmailAndPassword(auth, email, password);
-                showMessage('¡Registro exitoso!');
-            } catch (error) {
-                showMessage('Error al registrar. La contraseña debe tener al menos 6 caracteres.');
-            } finally {
-                showLoading(false);
+                document.getElementById('login-btn').addEventListener('click', () => window.location.href = "share-login.html");
             }
         }
 
