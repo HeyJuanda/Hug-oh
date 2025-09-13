@@ -57,6 +57,32 @@
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
+        
+        .icon-btn {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: #fff;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            background: transparent;
+            background-image: linear-gradient(#292828, #292828),
+                              linear-gradient(135deg, #0fb4ff, #ff4484, #ffeb3b, #ffffff);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            transition: 0.3s;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+        }
+
+        .icon-btn:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 18px rgba(255, 255, 255, 0.6),
+                        0 0 25px rgba(255, 68, 132, 0.5),
+                        0 0 35px rgba(15, 180, 255, 0.4);
+        }
 
         .btn {
             width: 130px;
@@ -83,7 +109,7 @@
                         0 0 25px rgba(255, 68, 132, 0.5),
                         0 0 35px rgba(15, 180, 255, 0.4);
         }
-
+        
         .profile-photo-container {
             position: relative;
             width: 150px;
@@ -120,7 +146,7 @@
         
         .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(3, minmax(100px, 1fr));
             gap: 16px;
         }
 
@@ -165,7 +191,7 @@
         /* Updated modal and image styling */
         #post-modal .card {
             width: 95%;
-            max-width: 6xl; /* Tailwind class for max-width: 80rem */
+            max-width: 6xl;
             max-height: 95vh;
             overflow-y: auto;
         }
@@ -393,8 +419,16 @@
             authUi.innerHTML = '';
             if (state === 'logged-in') {
                 authUi.innerHTML = `
-                    <button id="profile-btn" class="btn">Mi Perfil</button>
-                    <button id="logout-btn" class="btn">Cerrar Sesión</button>
+                    <button id="profile-btn" class="icon-btn" title="Mi perfil">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-5 5h10a5 5 0 00-5-5z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <button id="logout-btn" class="icon-btn" title="Cerrar sesión">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                    </button>
                 `;
                 document.getElementById('profile-btn').addEventListener('click', () => window.location.hash = '');
                 document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
@@ -425,9 +459,17 @@
                             <h1 id="profile-name-display" class="text-2xl md:text-3xl font-bold">Cargando...</h1>
                             <p class="text-sm text-gray-400 mb-2">ID: <span class="font-mono select-all">${currentUser.uid}</span></p>
                             <p id="profile-bio-display" class="text-gray-300">Cargando...</p>
-                            <div class="flex flex-col md:flex-row justify-center md:justify-start gap-4 mt-4">
-                                <button id="edit-profile-btn" class="btn">Editar perfil</button>
-                                <button id="share-profile-btn" class="btn">Compartir</button>
+                            <div class="flex flex-row md:flex-row justify-center md:justify-start gap-4 mt-4">
+                                <button id="edit-profile-btn" class="icon-btn" title="Editar perfil">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                </button>
+                                <button id="share-profile-btn" class="icon-btn" title="Compartir">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v13" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                     </div>
