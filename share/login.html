@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hug-Share!</title>
+      <link rel="icon" href="hug.svg" type="image/svg+xml">
+  <link rel="shortcut icon" href="logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: #292828;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .bubbles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .bubble {
+            position: absolute;
+            bottom: -150px;
+            border-radius: 50%;
+            animation: rise 10s linear forwards;
+            filter: blur(4px);
+        }
+
+        @keyframes rise {
+            0% { transform: translateY(0) scale(1); opacity: 0.8; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-120vh) scale(1.2); opacity: 0; }
+        }
+
+        .bubble span { position: absolute; border-radius: 50%; }
+        .bubble span:nth-child(1) { inset: 10px; border-left: 10px solid #0fb4ff; filter: blur(6px); }
+        .bubble span:nth-child(2) { inset: 10px; border-right: 10px solid #ff4484; filter: blur(6px); }
+        .bubble span:nth-child(3) { inset: 10px; border-top: 10px solid #ffeb3b; filter: blur(6px); }
+        .bubble span:nth-child(4) { inset: 20px; border-left: 10px solid #ff4484; filter: blur(10px); }
+        .bubble span:nth-child(5) { inset: 10px; border-bottom: 8px solid #fff; filter: blur(6px); transform: rotate(330deg); }
+
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn {
+            width: 130px;
+            height: 42px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 25px;
+            border: 3px solid transparent;
+            background: transparent;
+            background-image: linear-gradient(#292828, #292828),
+                              linear-gradient(135deg, #0fb4ff, #ff4484, #ffeb3b, #ffffff);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            transition: 0.3s;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:hover {
+            color: #ffeb3b;
+            transform: scale(1.08);
+            box-shadow: 0 0 18px rgba(255, 255, 255, 0.6),
+                        0 0 25px rgba(255, 68, 132, 0.5),
+                        0 0 35px rgba(15, 180, 255, 0.4);
+        }
+
+        .profile-photo-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+        }
+
+        .profile-photo {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #fff;
+            box-shadow: 0 0 15px #0fb4ff;
+        }
+
+        .photo-edit-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            cursor: pointer;
+        }
+        .profile-photo-container:hover .photo-edit-overlay {
+            opacity: 1;
+        }
+        
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .gallery-item {
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .gallery-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .message-box-container, .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .message-box {
+            background: #292828;
+            padding: 20px;
+            border-radius: 1rem;
+            text-align: center;
+            border: 2px solid #ff4484;
+            box-shadow: 0 0 20px #ff4484;
+        }
+        
+        /* Updated modal and image styling */
+        #post-modal .card {
+            width: 95%;
+            max-width: 6xl; /* Tailwind class for max-width: 80rem */
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        #post-photo {
+            max-width: 90%;
+            max-height: 70vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            margin: auto;
+        }
+     header {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(6px);
+    }
+
+    header img {
+      height: 50px;
+      animation: pulse-glow 3s infinite ease-in-out;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px #0fb4ff); }
+      50% { transform: scale(1.1); filter: drop-shadow(0 0 15px #ff4484); }
+    }
+
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    <div class="bubbles" id="bubbles"></div>
+
+    <header class="relative z-20 p-4 bg-black bg-opacity-30 backdrop-blur-sm flex justify-between items-center">
+      <img src="hugw.svg" alt="Logo Hug-Oh" onclick="window.location.href='../index.html'">
+        <div id="auth-ui" class="flex gap-4 items-center"></div>
+    </header>
+
+    <main id="app-container" class="relative z-20 flex-1 flex flex-col items-center p-4">
+        <div class="flex flex-col items-center justify-center p-8">
+                    <div class="w-full max-w-md p-8 card">
+                        <h3 class="text-xl font-semibold mb-4 text-center">Inicia Sesión o Regístrate</h3>
+                        <input type="email" id="email-input" placeholder="Correo electrónico" class="w-full p-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 mb-4"/>
+                        <input type="password" id="password-input" placeholder="Contraseña" class="w-full p-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 mb-4"/>
+                        <button id="signin-btn" class="btn w-full mb-2">Iniciar Sesión</button>
+                        <button id="signup-btn" class="btn w-full">Registrarse</button>
+                    </div>
+                </div>
+        </main>
+    
+    <div id="message-box" class="message-box-container hidden">
+        <div class="message-box card">
+            <p id="message-text" class="text-lg font-semibold"></p>
+            <button id="message-ok-btn" class="mt-4 btn">OK</button>
+        </div>
+    </div>
+    
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white"></div>
+            <p class="mt-4 text-white">Cargando...</p>
+        </div>
+    </div>
+
+    <div id="post-modal" class="hidden message-box-container">
+        <div class="card p-6 w-11/12 text-center">
+            <button onclick="document.getElementById('post-modal').classList.add('hidden')" class="float-right text-gray-400 hover:text-white">&times;</button>
+            <img id="post-photo" src="" alt="Post Photo" class="w-full h-auto rounded-lg mb-4">
+            <h3 id="post-caption" class="text-xl font-bold mb-2"></h3>
+            <p id="post-user-name" class="text-gray-400 mb-2"></p>
+            <p id="post-date" class="text-gray-500 text-sm"></p>
+            <div id="post-actions" class="mt-4 hidden">
+                <button id="edit-post-btn" class="btn">Editar</button>
+                <button id="delete-post-btn" class="btn">Eliminar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="edit-post-modal" class="hidden message-box-container">
+        <div class="card p-6 w-11/12 max-w-lg">
+            <h3 class="text-xl font-semibold mb-4">Editar Post</h3>
+            <label class="block mb-2">
+                <span class="text-gray-400">Título del Post:</span>
+                <input type="text" id="edit-post-caption" class="w-full bg-gray-700 text-white rounded-md p-2 mt-1"/>
+            </label>
+            <div class="flex justify-end gap-2 mt-4">
+                <button id="save-post-btn" class="btn">Guardar</button>
+                <button class="btn" onclick="document.getElementById('edit-post-modal').classList.add('hidden')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="relative z-20 text-center p-4 bg-black bg-opacity-40 mt-auto">
+        <p>© 2025 Hug-Share! • Creado por Hug-Oh</p>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot, updateDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        setLogLevel('Debug');
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3377y1-OurIh8o-FtIb8j2kePjTlqHbU",
+            authDomain: "hug-share.firebaseapp.com",
+            projectId: "hug-share",
+            storageBucket: "hug-share.appspot.com",
+            messagingSenderId: "416013649417",
+            appId: "1:416013649417:web:a07f37a4069a158da55ad8",
+            measurementId: "G-MPCG6M43P1"
+        };
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const authUi = document.getElementById('auth-ui');
+        const appContainer = document.getElementById('app-container');
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const messageOkBtn = document.getElementById('message-ok-btn');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        
+        // Bubble background animation
+        const bubblesContainer = document.getElementById("bubbles");
+        function createBubble() {
+            const bubble = document.createElement("div");
+            bubble.classList.add("bubble");
+            bubble.style.left = Math.random() * 100 + "vw";
+            const size = Math.random() * 80 + 40;
+            bubble.style.width = bubble.style.height = size + "px";
+            bubble.style.animationDuration = (Math.random() * 5 + 6) + "s";
+            for (let i = 0; i < 5; i++) {
+                const span = document.createElement("span");
+                bubble.appendChild(span);
+            }
+            bubblesContainer.appendChild(bubble);
+            setTimeout(() => bubble.remove(), 12000);
+        }
+        setInterval(createBubble, 1000);
+
+        function showMessage(text) {
+            messageText.textContent = text;
+            messageBox.classList.remove('hidden');
+        }
+        messageOkBtn.addEventListener('click', () => {
+            messageBox.classList.add('hidden');
+        });
+
+        function showLoading(show) {
+            loadingOverlay.classList.toggle('hidden', !show);
+        }
+
+        function renderUI(state) {
+            authUi.innerHTML = '';
+            authUi.innerHTML = `
+                <button id="login-btn" class="btn">Iniciar Sesión</button>
+            `;
+            document.getElementById('login-btn').addEventListener('click', () => window.location.href = "share-login.html");
+        }
+        
+        renderUI('logged-out');
+
+        document.getElementById('signin-btn').addEventListener('click', handleSignIn);
+        document.getElementById('signup-btn').addEventListener('click', handleSignUp);
+        
+        async function handleSignIn() {
+            const email = document.getElementById('email-input').value;
+            const password = document.getElementById('password-input').value;
+            showLoading(true);
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showMessage('¡Sesión iniciada con éxito!');
+                window.location.href = "share.html";
+            } catch (error) {
+                showMessage('Error al iniciar sesión. Verifica tus datos.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function handleSignUp() {
+            const email = document.getElementById('email-input').value;
+            const password = document.getElementById('password-input').value;
+            showLoading(true);
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                showMessage('¡Registro exitoso!');
+                window.location.href = "share.html";
+            } catch (error) {
+                showMessage('Error al registrar. La contraseña debe tener al menos 6 caracteres.');
+            } finally {
+                showLoading(false);
+            }
+        }
+    </script>
+</body>
+</html>
