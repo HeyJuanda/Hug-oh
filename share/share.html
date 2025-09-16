@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hug-Share!</title>
-      <link rel="icon" href="hug.svg" type="image/svg+xml">
-  <link rel="shortcut icon" href="logo.png">
+    <link rel="icon" href="hug.svg" type="image/svg+xml">
+    <link rel="shortcut icon" href="logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body {
@@ -110,6 +111,15 @@
                         0 0 35px rgba(15, 180, 255, 0.4);
         }
         
+        .gradient-input {
+            border: 3px solid transparent;
+            background: #292828;
+            background-image: linear-gradient(#292828, #292828),
+                              linear-gradient(135deg, #0fb4ff, #ff4484, #ffeb3b, #ffffff);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+        }
+
         .profile-photo-container {
             position: relative;
             width: 150px;
@@ -177,8 +187,16 @@
             display: flex;
             justify-content: center;
             align-items: center;
+        }
+        
+        .message-box-container {
+            z-index: 1001;
+        }
+        
+        .loading-overlay {
             z-index: 1000;
         }
+        
         .message-box {
             background: #292828;
             padding: 20px;
@@ -188,7 +206,6 @@
             box-shadow: 0 0 20px #ff4484;
         }
         
-        /* Updated modal and image styling */
         #post-modal .card {
             width: 95%;
             max-width: 6xl;
@@ -224,7 +241,77 @@
       0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px #0fb4ff); }
       50% { transform: scale(1.1); filter: drop-shadow(0 0 15px #ff4484); }
     }
+    
+    .post-modal-container {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        max-width: 1200px;
+        max-height: 800px;
+    }
 
+    .post-modal-image {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    
+    .post-modal-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    .post-image {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+    
+    .comments-section {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+    .like-icon.liked {
+        color: #ff4d4d;
+        transform: scale(1.1);
+    }
+    .like-icon {
+        transition: transform 0.2s, color 0.2s;
+    }
+    
+    .comment-options-dropdown {
+        position: absolute;
+        right: 0;
+        top: 25px;
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        z-index: 10;
+        padding: 5px;
+    }
+    .delete-comment-btn {
+        color: #ff4d4d;
+        padding: 5px 10px;
+        cursor: pointer;
+        width: 100%;
+        text-align: left;
+        display: block;
+        background: none;
+        border: none;
+    }
+    .delete-comment-btn:hover {
+        background: #333;
+    }
+    .comment-container {
+        position: relative;
+    }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -236,7 +323,7 @@
     </header>
 
     <main id="app-container" class="relative z-20 flex-1 flex flex-col items-center p-4">
-        </main>
+    </main>
     <div id="message-box" class="message-box-container hidden">
         <div class="message-box card">
             <p id="message-text" class="text-lg font-semibold"></p>
@@ -252,23 +339,61 @@
     </div>
 
     <div id="post-modal" class="hidden message-box-container">
-        <div class="card p-6 w-11/12 text-center">
-            <button onclick="document.getElementById('post-modal').classList.add('hidden')" class="float-right text-gray-400 hover:text-white">&times;</button>
-            <img id="post-photo" src="" alt="Post Photo" class="w-full h-auto rounded-lg mb-4">
-            <h3 id="post-caption" class="text-xl font-bold mb-2"></h3>
-            <p id="post-user-name" class="text-gray-400 mb-2"></p>
-            <p id="post-date" class="text-gray-500 text-sm"></p>
-            <div id="post-actions" class="mt-4 hidden flex justify-center gap-4">
-                <button id="edit-post-btn" class="icon-btn" title="Editar post">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                </button>
-                <button id="delete-post-btn" class="icon-btn" title="Eliminar post">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                </button>
+        <div class="card p-6 w-11/12 max-w-6xl max-h-[95vh] overflow-hidden flex flex-col md:flex-row text-left">
+            <div class="md:w-1/2 flex items-center justify-center p-2 mb-4 md:mb-0">
+                <img id="post-photo" src="" alt="Post Photo" class="max-h-[70vh] w-auto rounded-lg">
+            </div>
+            <div class="md:w-1/2 flex flex-col p-2 overflow-y-auto">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-4">
+                        <img id="post-user-photo" src="https://placehold.co/50x50/292828/fff?text=User" alt="User Photo" class="w-12 h-12 rounded-full object-cover border-2 border-gray-400">
+                        <div>
+                            <h3 id="post-user-name" class="font-bold text-lg"></h3>
+                            <p id="post-date" class="text-gray-500 text-sm"></p>
+                        </div>
+                    </div>
+                    <button onclick="document.getElementById('post-modal').classList.add('hidden')" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+                </div>
+
+                <div class="flex items-center justify-between gap-4 border-b border-gray-700 pb-2">
+                    <div class="flex gap-4 items-center">
+                        <button id="like-btn" class="icon-btn text-2xl" title="Me gusta">
+                            <svg id="like-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </button>
+                        <span id="like-count" class="text-white text-md">0 Me gusta</span>
+                    </div>
+                    <div id="post-actions" class="flex gap-2">
+                        <button id="edit-post-btn" class="icon-btn" title="Editar post">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                        </button>
+                        <button id="delete-post-btn" class="icon-btn" title="Eliminar post">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-4 overflow-y-auto flex-1">
+                    <p id="post-caption" class="text-gray-300 text-lg mb-4"></p>
+                    <h4 class="font-bold text-lg mb-2">Comentarios</h4>
+                    <div id="comments-list" class="flex flex-col gap-4">
+                        <p id="no-comments-message" class="text-gray-500 text-center">Todavía no hay comentarios. Inicia la conversación.</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex items-center gap-2 border-t border-gray-700 pt-4">
+                    <input type="text" id="comment-input" placeholder="Añade un comentario..." class="flex-1 p-2 rounded-full bg-gray-700 text-white border-2 border-transparent focus:border-blue-400 outline-none transition-colors">
+                    <button id="comment-btn" class="icon-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -278,7 +403,7 @@
             <h3 class="text-xl font-semibold mb-4">Editar Post</h3>
             <label class="block mb-2">
                 <span class="text-gray-400">Título del Post:</span>
-                <input type="text" id="edit-post-caption" class="w-full bg-gray-700 text-white rounded-md p-2 mt-1"/>
+                <input type="text" id="edit-post-caption" class="w-full bg-gray-700 text-white rounded-md p-2 mt-1 gradient-input"/>
             </label>
             <div class="flex justify-end gap-2 mt-4">
                 <button id="save-post-btn" class="btn">Guardar</button>
@@ -293,8 +418,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot, updateDoc, addDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot, updateDoc, addDoc, deleteDoc, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         setLogLevel('Debug');
 
@@ -315,6 +440,8 @@
         const db = getFirestore(app);
 
         let currentUser = null;
+        let selectedPostId = null;
+        let currentPostUserId = null;
 
         const authUi = document.getElementById('auth-ui');
         const appContainer = document.getElementById('app-container');
@@ -322,10 +449,11 @@
         const messageText = document.getElementById('message-text');
         const messageOkBtn = document.getElementById('message-ok-btn');
         const loadingOverlay = document.getElementById('loading-overlay');
-
+        
         function showMessage(text) {
             messageText.textContent = text;
             messageBox.classList.remove('hidden');
+            setTimeout(() => messageBox.classList.add('hidden'), 3000);
         }
         messageOkBtn.addEventListener('click', () => {
             messageBox.classList.add('hidden');
@@ -335,16 +463,6 @@
             loadingOverlay.classList.toggle('hidden', !show);
         }
 
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-                reader.readAsDataURL(file);
-            });
-        }
-        
-        // Bubble background animation
         const bubblesContainer = document.getElementById("bubbles");
         function createBubble() {
             const bubble = document.createElement("div");
@@ -362,34 +480,50 @@
         }
         setInterval(createBubble, 1000);
 
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             const pathUserId = window.location.hash.substring(1);
-
-            if (currentUser) {
-                const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid);
-                const userDocSnap = await getDoc(userDocRef);
-                if (!userDocSnap.exists()) {
-                    await setDoc(userDocRef, {
-                        name: currentUser.uid,
-                        bio: '¡Hola! Este es mi perfil en Hug-Share.',
-                        profilePhoto: 'https://placehold.co/150x150/292828/fff?text=User'
-                    });
-                }
-                
-                renderUI('logged-in');
-                if (pathUserId && pathUserId !== currentUser.uid) {
-                    renderPublicProfilePage(pathUserId);
+            showLoading(true);
+            try {
+                if (currentUser) {
+                    const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+                    if (!userDocSnap.exists()) {
+                        await setDoc(userDocRef, {
+                            name: currentUser.uid,
+                            bio: '¡Hola! Este es mi perfil en Hug-Share.',
+                            profilePhoto: 'https://placehold.co/150x150/292828/fff?text=User'
+                        });
+                    }
+                    
+                    renderUI('logged-in');
+                    if (pathUserId && pathUserId !== currentUser.uid) {
+                        renderPublicProfilePage(pathUserId);
+                    } else {
+                        renderMyProfilePage();
+                    }
                 } else {
-                    renderMyProfilePage();
+                    renderUI('logged-out');
+                    if (pathUserId) {
+                        renderPublicProfilePage(pathUserId);
+                    } else {
+                        window.location.href = "login.html";
+                    }
                 }
-            } else {
-                renderUI('logged-out');
-                if (pathUserId) {
-                    renderPublicProfilePage(pathUserId);
-                } else {
-                    window.location.href = "login.html";
-                }
+            } catch (error) {
+                console.error("Authentication or rendering failed:", error);
+                showMessage("Error al cargar la aplicación. Inténtalo de nuevo.");
+            } finally {
+                showLoading(false);
             }
         });
 
@@ -417,11 +551,7 @@
                 console.error("Custom token sign-in failed:", error);
                 await signInAnonymously(auth);
             }
-        } else {
-            // Eliminar el inicio de sesión anónimo si se desea que no haya cuentas temporales
-            // y que los usuarios deban registrarse o iniciar sesión.
         }
-        
         
         function renderUI(state) {
             authUi.innerHTML = '';
@@ -499,7 +629,7 @@
                     <div class="card p-6 w-11/12 max-w-lg">
                         <h3 class="text-xl font-semibold mb-4">Subir Foto</h3>
                         <input type="file" id="photo-input" accept="image/*" class="w-full text-sm text-gray-400 mb-4"/>
-                        <input type="text" id="photo-caption-input" placeholder="Título de la foto..." class="w-full bg-gray-700 text-white rounded-md p-2 mb-4"/>
+                        <input type="text" id="photo-caption-input" placeholder="Título de la foto..." class="w-full bg-gray-700 text-white rounded-md p-2 mb-4 gradient-input"/>
                         <div class="flex justify-end gap-2">
                             <button id="upload-btn" class="btn">Subir</button>
                             <button class="btn" onclick="document.getElementById('photo-upload-modal').classList.add('hidden')">Cancelar</button>
@@ -512,11 +642,11 @@
                         <h3 class="text-xl font-semibold mb-4">Editar Perfil</h3>
                         <label class="block mb-2">
                             <span class="text-gray-400">Nombre:</span>
-                            <input type="text" id="edit-name" class="w-full bg-gray-700 text-white rounded-md p-2 mt-1"/>
+                            <input type="text" id="edit-name" class="w-full bg-gray-700 text-white rounded-md p-2 mt-1 gradient-input"/>
                         </label>
                         <label class="block mb-4">
                             <span class="text-gray-400">Biografía:</span>
-                            <textarea id="edit-bio" rows="4" class="w-full bg-gray-700 text-white rounded-md p-2 mt-1"></textarea>
+                            <textarea id="edit-bio" rows="4" class="w-full bg-gray-700 text-white rounded-md p-2 mt-1 gradient-input"></textarea>
                         </label>
                         <div class="flex justify-end gap-2">
                             <button id="save-profile-btn" class="btn">Guardar</button>
@@ -541,6 +671,8 @@
                     document.getElementById('profile-bio-display').textContent = data.bio;
                     document.getElementById('profile-photo-img').src = data.profilePhoto;
                 }
+            }, (error) => {
+                console.error("Error getting user data: ", error);
             });
 
             const photosColRef = collection(db, 'artifacts', appId, 'public', 'data', 'photos');
@@ -560,6 +692,8 @@
                     galleryItem.addEventListener('click', () => showPostModal(photo, docSnap.id));
                     gallery.appendChild(galleryItem);
                 });
+            }, (error) => {
+                console.error("Error getting user photos: ", error);
             });
         }
 
@@ -622,17 +756,75 @@
                         gallery.appendChild(galleryItem);
                     });
                 }
+            }, (error) => {
+                console.error("Error getting public photos: ", error);
             });
         }
-
-        function showPostModal(photo, postId) {
+        
+        async function showPostModal(photo, postId) {
+            selectedPostId = postId;
+            currentPostUserId = photo.userId;
             const modal = document.getElementById('post-modal');
             document.getElementById('post-photo').src = photo.base64;
             document.getElementById('post-caption').textContent = photo.caption;
-            document.getElementById('post-user-name').textContent = `Por: ${photo.userName}`;
-            document.getElementById('post-date').textContent = new Date(photo.createdAt).toLocaleString();
             
+            const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', photo.userId);
+            const userDocSnap = await getDoc(userDocRef);
+            const userData = userDocSnap.data();
+            document.getElementById('post-user-name').textContent = userData?.name || 'Usuario';
+            document.getElementById('post-user-photo').src = userData?.profilePhoto || 'https://placehold.co/50x50/292828/fff?text=User';
+
+            document.getElementById('post-date').textContent = new Date(photo.createdAt).toLocaleString();
             const postActions = document.getElementById('post-actions');
+            const likeBtn = document.getElementById('like-btn');
+            const likeIcon = document.getElementById('like-icon');
+            const likeCountSpan = document.getElementById('like-count');
+
+            const updateLikes = (likes) => {
+                const hasLiked = likes && currentUser && likes.includes(currentUser.uid);
+                likeCountSpan.textContent = `${likes ? likes.length : 0} Me gusta`;
+                if (hasLiked) {
+                    likeIcon.style.fill = '#ff4d4d';
+                    likeIcon.style.stroke = '#ff4d4d';
+                } else {
+                    likeIcon.style.fill = 'none';
+                    likeIcon.style.stroke = 'currentColor';
+                }
+            };
+
+            const postDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'photos', postId);
+            const unsubscribeLikes = onSnapshot(postDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    updateLikes(data.likes);
+                }
+            });
+
+            likeBtn.onclick = async () => {
+                if (!currentUser) {
+                    showMessage('Debes iniciar sesión para dar "me gusta".');
+                    return;
+                }
+                
+                // Optimistic UI update
+                const currentLikes = (await getDoc(postDocRef)).data().likes || [];
+                const userHasLiked = currentLikes.includes(currentUser.uid);
+                
+                const newLikes = userHasLiked 
+                    ? currentLikes.filter(uid => uid !== currentUser.uid)
+                    : [...currentLikes, currentUser.uid];
+                
+                updateLikes(newLikes);
+
+                try {
+                    await updateDoc(postDocRef, { likes: newLikes });
+                } catch (error) {
+                    console.error("Error updating like:", error);
+                    showMessage("Error al procesar el like. Inténtalo de nuevo.");
+                    updateLikes(currentLikes); // Revert optimistic update on failure
+                }
+            };
+
             if (currentUser && photo.userId === currentUser.uid) {
                 postActions.classList.remove('hidden');
                 document.getElementById('edit-post-btn').onclick = () => showEditPostModal(postId, photo.caption);
@@ -641,7 +833,131 @@
                 postActions.classList.add('hidden');
             }
 
+            const commentsList = document.getElementById('comments-list');
+            const noCommentsMessage = document.getElementById('no-comments-message');
+            const commentsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'photos', postId, 'comments');
+            
+            const unsubscribeComments = onSnapshot(commentsColRef, async (snapshot) => {
+                commentsList.innerHTML = '';
+                if (snapshot.empty) {
+                    noCommentsMessage.style.display = 'block';
+                } else {
+                    noCommentsMessage.style.display = 'none';
+                    for (const docSnap of snapshot.docs) {
+                        const commentId = docSnap.id;
+                        const comment = docSnap.data();
+                        const commentUserRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', comment.userId);
+                        const commentUserSnap = await getDoc(commentUserRef);
+                        const commentUserData = commentUserSnap.data();
+
+                        const commentElement = document.createElement('div');
+                        commentElement.classList.add('flex', 'items-start', 'gap-2', 'mb-2', 'comment-container');
+                        
+                        const isAuthor = currentUser && (comment.userId === currentUser.uid || photo.userId === currentUser.uid);
+                        
+                        let optionsHtml = '';
+                        if (isAuthor) {
+                            optionsHtml = `
+                                <div class="relative">
+                                    <button class="text-gray-400 hover:text-white px-2 py-1 rounded-full text-sm font-bold" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                                        ...
+                                    </button>
+                                    <div class="comment-options-dropdown absolute hidden">
+                                        <button class="delete-comment-btn" data-comment-id="${commentId}">
+                                            Eliminar
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        commentElement.innerHTML = `
+                            <img src="${commentUserData?.profilePhoto || 'https://placehold.co/40x40/292828/fff?text=User'}" alt="Commenter Photo" class="w-8 h-8 rounded-full object-cover">
+                            <div class="flex-1">
+                                <p class="text-sm">
+                                    <span class="font-bold text-white">${commentUserData?.name || 'Usuario'}</span>
+                                    <span class="text-gray-300">: ${comment.text}</span>
+                                </p>
+                            </div>
+                            ${optionsHtml}
+                        `;
+                        commentsList.appendChild(commentElement);
+                    }
+                    // Add event listeners after elements are created
+                    document.querySelectorAll('.delete-comment-btn').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            const commentId = e.target.dataset.commentId;
+                            deleteComment(commentId);
+                        });
+                    });
+                }
+            });
+
+            const commentInput = document.getElementById('comment-input');
+            const commentBtn = document.getElementById('comment-btn');
+            commentBtn.onclick = () => addComment(postId, commentInput.value);
+
             modal.classList.remove('hidden');
+            modal.querySelector('.card').scrollTop = 0;
+
+            modal.onclick = (e) => {
+                if (e.target.id === 'post-modal') {
+                    unsubscribeLikes();
+                    unsubscribeComments();
+                    modal.classList.add('hidden');
+                }
+            };
+        }
+
+        async function addComment(postId, commentText) {
+            if (!currentUser) {
+                showMessage('Debes iniciar sesión para comentar.');
+                return;
+            }
+            if (!commentText.trim()) {
+                showMessage('El comentario no puede estar vacío.');
+                return;
+            }
+            showLoading(true);
+            try {
+                const commentsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'photos', postId, 'comments');
+                await addDoc(commentsColRef, {
+                    userId: currentUser.uid,
+                    text: commentText,
+                    createdAt: new Date().toISOString()
+                });
+                document.getElementById('comment-input').value = '';
+            } catch (error) {
+                console.error("Error adding comment: ", error);
+                showMessage("Error al añadir el comentario.");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function deleteComment(commentId) {
+            if (!currentUser || !selectedPostId) return;
+            if (!confirm("¿Estás seguro de que quieres eliminar este comentario?")) return;
+
+            showLoading(true);
+            try {
+                const commentsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'photos', selectedPostId, 'comments');
+                const commentDocRef = doc(commentsColRef, commentId);
+                const commentDocSnap = await getDoc(commentDocRef);
+                const commentData = commentDocSnap.data();
+                
+                if (currentUser.uid === commentData.userId || (currentPostUserId && currentUser.uid === currentPostUserId)) {
+                    await deleteDoc(commentDocRef);
+                    showMessage("Comentario eliminado.");
+                } else {
+                    showMessage("No tienes permiso para eliminar este comentario.");
+                }
+            } catch (error) {
+                console.error("Error deleting comment:", error);
+                showMessage("Error al eliminar el comentario.");
+            } finally {
+                showLoading(false);
+            }
         }
 
         async function deletePost(postId) {
@@ -668,7 +984,8 @@
             captionInput.value = currentCaption;
             
             modal.classList.remove('hidden');
-            document.getElementById('save-post-btn').onclick = () => saveEditedPost(postId);
+            const saveBtn = document.getElementById('save-post-btn');
+            saveBtn.onclick = () => saveEditedPost(postId);
         }
 
         async function saveEditedPost(postId) {
@@ -677,16 +994,22 @@
                 showMessage('El título no puede estar vacío.');
                 return;
             }
+            if (!currentUser) {
+                 showMessage('No estás autenticado.');
+                 return;
+            }
 
             showLoading(true);
             try {
                 const postDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'photos', postId);
+                
                 await updateDoc(postDocRef, { caption: newCaption });
+                
                 document.getElementById('edit-post-modal').classList.add('hidden');
                 showMessage('¡Publicación actualizada con éxito!');
             } catch (error) {
                 console.error("Error updating post: ", error);
-                showMessage("Error al actualizar la publicación.");
+                showMessage("Error al actualizar la publicación. Asegúrate de ser el propietario.");
             } finally {
                 showLoading(false);
             }
@@ -702,25 +1025,32 @@
         function showEditProfileModal() {
             const modal = document.getElementById('edit-profile-modal');
             modal.classList.remove('hidden');
-
+        
+            const editNameInput = document.getElementById('edit-name');
+            const editBioInput = document.getElementById('edit-bio');
+            const saveBtn = document.getElementById('save-profile-btn');
+        
+            // Limpia cualquier listener anterior para evitar duplicados.
+            saveBtn.onclick = null;
+        
             const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid);
             getDoc(userDocRef).then((docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    document.getElementById('edit-name').value = data.name;
-                    document.getElementById('edit-bio').value = data.bio;
+                    editNameInput.value = data.name;
+                    editBioInput.value = data.bio;
                 }
             });
-
-            document.getElementById('save-profile-btn').onclick = async () => {
-                const newName = document.getElementById('edit-name').value;
-                const newBio = document.getElementById('edit-bio').value;
-
+        
+            saveBtn.onclick = async () => {
+                const newName = editNameInput.value;
+                const newBio = editBioInput.value;
+        
                 if (!newName) {
                     showMessage('El nombre no puede estar vacío.');
                     return;
                 }
-
+        
                 showLoading(true);
                 try {
                     const userDocSnap = await getDoc(userDocRef);
@@ -733,7 +1063,7 @@
                             return;
                         }
                     }
-
+        
                     await updateDoc(userDocRef, { name: newName, bio: newBio });
                     showMessage('¡Perfil actualizado con éxito!');
                     modal.classList.add('hidden');
@@ -785,6 +1115,7 @@
             try {
                 const file = photoInput.files[0];
                 const base64 = await fileToBase64(file);
+
                 const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid);
                 const userDocSnap = await getDoc(userDocRef);
                 const userName = userDocSnap.data()?.name || 'Usuario Anónimo';
