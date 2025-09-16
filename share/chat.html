@@ -9,9 +9,7 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
-    html, body {
-      height: 100%;
-    }
+    html, body { height: 100%; }
     
     body {
       margin: 0;
@@ -287,9 +285,8 @@
     <img src="svg/hogar.svg" alt="Inicio" class="w-5 h-5" style="color: white">
     </a>
   </header>
-
-  <main class="flex flex-1 h-[calc(100vh-80px)] p-4 gap-4 relative z-10">
-    <div class="card w-1/3 flex flex-col space-y-4 relative">
+  <main class="flex flex-1 h-[calc(100vh-80px) p-4 gap-4 relative z-10">
+    <div id="chatListContainer" class="card w-full lg:w-1/3 flex flex-col space-y-4 relative">
       <button id="addContactBtn" class="add-contact-btn">
         <img src="svg/agregarcontacto.svg" alt="Agregar contacto" class="w-6 h-6" style="filter: brightness(0) invert(1);">
       </button>
@@ -305,11 +302,18 @@
       </div>
     </div>
 
-    <div class="card flex-1 flex-col flex">
+    <div id="chatMainContainer" class="card flex-1 flex-col flex hidden lg:flex">
       <div class="chat-nav flex justify-between items-center mb-2">
-        <div>
-          <strong id="chatTitle">Selecciona un chat</strong>
-          <div id="chatMembers" class="text-xs text-gray-400"></div>
+        <div class="flex items-center gap-2">
+          <button id="btnBackToChats" class="btn btn-icon lg:hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+          </button>
+          <div>
+            <strong id="chatTitle">Selecciona un chat</strong>
+            <div id="chatMembers" class="text-xs text-gray-400"></div>
+          </div>
         </div>
         <div class="flex gap-2 items-center">
           <button id="btnInvite" class="btn hidden">Invitar</button>
@@ -454,6 +458,8 @@
     let fileNameToSend = null;
     let fileTypeToSend = null;
 
+    const chatListContainer = document.getElementById("chatListContainer");
+    const chatMainContainer = document.getElementById("chatMainContainer");
     const groupsList = document.getElementById("groupsList");
     const privatesList = document.getElementById("privatesList");
     const chatTitle = document.getElementById("chatTitle");
@@ -462,6 +468,7 @@
     const messageInput = document.getElementById("messageInput");
     const btnSend = document.getElementById("btnSend");
     const btnLeave = document.getElementById("btnLeave");
+    const btnBackToChats = document.getElementById("btnBackToChats");
     const btnInvite = document.getElementById("btnInvite");
     const inviteModal = document.getElementById("inviteModal");
     const inviteUserInput = document.getElementById("inviteUserInput");
@@ -856,6 +863,11 @@
         collection(db, type === "group" ? `${appPath}/groups/${id}/messages` : `${appPath}/privateChats/${id}/messages`),
         orderBy("createdAt")
       );
+      
+      // Mostrar el contenedor del chat y ocultar la lista en móviles
+      chatListContainer.classList.add('hidden');
+      chatMainContainer.classList.remove('hidden');
+      chatMainContainer.classList.add('flex');
 
       unsubMessages = onSnapshot(q, async (messagesSnap) => {
         const wasAtBottom = messagesWrap.scrollHeight - messagesWrap.scrollTop - messagesWrap.clientHeight < 5;
@@ -920,9 +932,9 @@
           optionsDiv.id = `options-${msgDoc.id}`;
           optionsDiv.className = "message-options p-1";
           optionsDiv.innerHTML = `
-            <button class="text-sm px-2 py-1 hover:bg-gray-500 rounded" onclick="handleReply('${msgDoc.id}', '${msgData.authorName}', \`${msgData.text || ''}\`)"><img src="svg/responder.svg" alt="Responder" class="w-4 h-4 inline-block mr-1" style="filter: brightness(0) invert(1);"> Responder</button>
-            <button class="text-sm px-2 py-1 hover:bg-gray-500 rounded" onclick="handleReact('${msgDoc.id}')"><img src="svg/reaccionar.svg" alt="Reaccionar" class="w-4 h-4 inline-block mr-1" style="filter: brightness(0) invert(1);"> Reaccionar</button>
-            <button class="text-sm px-2 py-1 hover:bg-gray-500 rounded" onclick="handleForward(\`${msgData.text || ''}\`, '${msgData.authorName}')"><img src="svg/reenviar.svg" alt="Reenviar" class="w-4 h-4 inline-block mr-1" style="filter: brightness(0) invert(1);"> Reenviar</button>
+            <button class="text-sm px-2 py-1 hover:bg-gray-500 rounded" onclick="window.handleReply('${msgDoc.id}', '${msgData.authorName}', \`${msgData.text || ''}\`)"><img src="svg/responder.svg" alt="Responder" class="w-4 h-4 inline-block mr-1" style="filter: brightness(0) invert(1);"> Responder</button>
+            <button class="text-sm px-2 py-1 hover:bg-gray-500 rounded" onclick="window.handleReact('${msgDoc.id}')"><img src="svg/reaccionar.svg" alt="Reaccionar" class="w-4 h-4 inline-block mr-1" style="filter: brightness(0) invert(1);"> Reaccionar</button>
+            <button class="text-sm px-2 py-1 hover:bg-gray-500 rounded" onclick="window.handleForward(\`${msgData.text || ''}\`, '${msgData.authorName}')"><img src="svg/reenviar.svg" alt="Reenviar" class="w-4 h-4 inline-block mr-1" style="filter: brightness(0) invert(1);"> Reenviar</button>
           `;
           if (msgData.authorId === currentUser.uid) {
               optionsDiv.innerHTML += `<button class="text-sm px-2 py-1 hover:bg-red-500 rounded" onclick="handleDelete('${msgDoc.id}')"><img src="svg/eliminar.svg" alt="Borrar" class="w-4 h-4 inline-block mr-1" style="filter: brightness(0) invert(1);"> Borrar</button>`;
@@ -1137,13 +1149,45 @@
         forwardModal.style.display = "none";
     };
 
-    // --- Lógica de salida del chat ---
-    btnLeave.onclick = () => {
-      currentChat = null;
-      messagesWrap.innerHTML = "<p class='text-gray-400'>Selecciona un chat.</p>";
-      btnInvite.classList.add("hidden");
+    // --- Lógica de reenviar, responder y reaccionar (Faltantes) ---
+    window.handleReply = (messageId, authorName, messageText) => {
+        replyToMessageId = messageId;
+        replyAuthor.textContent = authorName;
+        replyText.textContent = messageText.trim().replace(/\n/g, ' ');
+        replyPreview.classList.remove('hidden');
+        messageInput.focus();
+        closeAllOptionMenus();
+    };
+
+    window.handleReact = (messageId) => {
+        reactModal.dataset.messageId = messageId;
+        reactModal.style.display = 'flex';
+        closeAllOptionMenus();
+    };
+
+    window.handleForward = (messageText, authorName) => {
+        forwardedMessageText = messageText;
+        forwardedAuthorName = authorName;
+        showForwardModal();
+        closeAllOptionMenus();
     };
     
+    // --- Lógica de salida del chat (modificado para diseño móvil) ---
+    btnLeave.onclick = () => {
+        currentChat = null;
+        messagesWrap.innerHTML = "<p class='text-gray-400'>Selecciona un chat.</p>";
+        btnInvite.classList.add("hidden");
+        // Ocultar chat y mostrar lista
+        chatMainContainer.classList.add('hidden');
+        chatMainContainer.classList.remove('flex');
+        chatListContainer.classList.remove('hidden');
+    };
+    
+    // Nuevo manejador para el botón de volver en móvil
+    btnBackToChats.onclick = () => {
+      btnLeave.click();
+    };
+
     // Escucha de clic global para cerrar menús de opciones.
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.message-bubble') && !e.target.closest('.chat-item-options-menu') && !e.target.closest('.chat-item-options') ) {
