@@ -480,14 +480,97 @@
         }
         setInterval(createBubble, 1000);
 
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
+     function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                // Opcional: Establecer un tamaño máximo para la imagen
+                const MAX_SIZE = 800;
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height *= MAX_SIZE / width;
+                        width = MAX_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width *= MAX_SIZE / height;
+                        height = MAX_SIZE;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Obtiene la imagen comprimida en formato JPEG con calidad del 80%
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                resolve(compressedBase64);
+            };
+            img.onerror = reject;
+            img.src = event.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+    // --- Nuevas funciones para el sistema de seguidores ---
+
+    // Función para seguir a un usuario
+    async function followUser(currentUserId, targetUserId) {
+        const followingDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUserId, 'following', targetUserId);
+        const followersDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', targetUserId, 'followers', currentUserId);
+        try {
+            await setDoc(followingDocRef, { followedAt: new Date().toISOString() });
+            await setDoc(followersDocRef, { followedAt: new Date().toISOString() });
+            showMessage("Usuario seguido con éxito!");
+        } catch (error) {
+            console.error("Error al seguir al usuario:", error);
+            showMessage("Error al seguir al usuario.");
         }
+    }
+
+    // Función para dejar de seguir a un usuario
+    async function unfollowUser(currentUserId, targetUserId) {
+        const followingDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUserId, 'following', targetUserId);
+        const followersDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', targetUserId, 'followers', currentUserId);
+        try {
+            await deleteDoc(followingDocRef);
+            await deleteDoc(followersDocRef);
+            showMessage("Usuario dejado de seguir con éxito!");
+        } catch (error) {
+            console.error("Error al dejar de seguir al usuario:", error);
+            showMessage("Error al dejar de seguir al usuario.");
+        }
+    }
+
+    // Función para obtener el número de seguidores
+    async function getFollowerCount(userId) {
+        try {
+            const followersColRef = collection(db, 'artifacts', appId, 'public', 'data', 'users', userId, 'followers');
+            const querySnapshot = await getDocs(followersColRef);
+            return querySnapshot.size;
+        } catch (error) {
+            console.error("Error al obtener el número de seguidores:", error);
+            return 0;
+        }
+    }
+
+    // Función para verificar si el usuario actual sigue al usuario del perfil
+    async function checkIsFollowing(currentUserId, targetUserId) {
+        if (!currentUserId || !targetUserId) return false;
+        const followingDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUserId, 'following', targetUserId);
+        const docSnap = await getDoc(followingDocRef);
+        return docSnap.exists();
+    }
+
+    // --- Fin de las nuevas funciones ---
 
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
@@ -582,7 +665,7 @@
             }
         }
 
-        function renderMyProfilePage() {
+        async function renderMyProfilePage() {
             if (!currentUser) return;
             appContainer.innerHTML = `
                 <div class="profile-page w-full max-w-4xl mx-auto p-4 md:p-8">
@@ -601,6 +684,7 @@
                             <h1 id="profile-name-display" class="text-2xl md:text-3xl font-bold">Cargando...</h1>
                             <p class="text-sm text-gray-400 mb-2">ID: <span class="font-mono select-all">${currentUser.uid}</span></p>
                             <p id="profile-bio-display" class="text-gray-300">Cargando...</p>
+                            <p id="follower-count" class="text-gray-400 text-sm mb-4">Seguidores: 0</p>
                             <div class="flex flex-row md:flex-row justify-center md:justify-start gap-4 mt-4">
                                 <button id="edit-profile-btn" class="icon-btn" title="Editar perfil">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -664,12 +748,16 @@
             
             // Listeners for Firestore
             const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid);
-            onSnapshot(userDocRef, (docSnap) => {
+            onSnapshot(userDocRef, async (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     document.getElementById('profile-name-display').textContent = data.name;
                     document.getElementById('profile-bio-display').textContent = data.bio;
                     document.getElementById('profile-photo-img').src = data.profilePhoto;
+
+                    // Actualizar el contador de seguidores
+                    const followerCount = await getFollowerCount(currentUser.uid);
+                    document.getElementById('follower-count').textContent = `Seguidores: ${followerCount}`;
                 }
             }, (error) => {
                 console.error("Error getting user data: ", error);
@@ -697,7 +785,7 @@
             });
         }
 
-        function renderPublicProfilePage(profileId) {
+        async function renderPublicProfilePage(profileId) {
             appContainer.innerHTML = `
                 <div class="profile-page w-full max-w-4xl mx-auto p-4 md:p-8">
                     <div class="profile-header flex flex-col items-center md:flex-row md:items-start gap-8 mb-8">
@@ -708,6 +796,10 @@
                             <h1 id="profile-name-display" class="text-2xl md:text-3xl font-bold">Cargando...</h1>
                             <p class="text-sm text-gray-400 mb-2">ID: <span class="font-mono select-all">${profileId}</span></p>
                             <p id="profile-bio-display" class="text-gray-300">Cargando...</p>
+                            <p id="follower-count" class="text-gray-400 text-sm mb-4">Seguidores: 0</p>
+                            <div id="profile-buttons" class="flex flex-row md:flex-row justify-center md:justify-start gap-4 mt-4">
+                                <button id="toggle-follow-btn" class="btn hidden">Seguir</button>
+                            </div>
                         </div>
                     </div>
                     <div class="card p-4">
@@ -718,20 +810,47 @@
             `;
             
             const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', profileId);
-            onSnapshot(userDocRef, (docSnap) => {
+            onSnapshot(userDocRef, async (docSnap) => {
                 const profilePhoto = document.getElementById('profile-photo-img');
                 const nameDisplay = document.getElementById('profile-name-display');
                 const bioDisplay = document.getElementById('profile-bio-display');
+                const followerCountEl = document.getElementById('follower-count');
+                const toggleFollowBtn = document.getElementById('toggle-follow-btn');
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     nameDisplay.textContent = data.name;
                     bioDisplay.textContent = data.bio;
                     profilePhoto.src = data.profilePhoto;
+
+                    // Obtener y mostrar el número de seguidores
+                    const followerCount = await getFollowerCount(profileId);
+                    followerCountEl.textContent = `Seguidores: ${followerCount}`;
+                    
+                    // Lógica del botón de seguir/dejar de seguir
+                    if (currentUser && currentUser.uid !== profileId) {
+                        toggleFollowBtn.classList.remove('hidden');
+                        const isFollowing = await checkIsFollowing(currentUser.uid, profileId);
+                        toggleFollowBtn.textContent = isFollowing ? 'Dejar de seguir' : 'Seguir';
+                        toggleFollowBtn.onclick = async () => {
+                            showLoading(true);
+                            if (await checkIsFollowing(currentUser.uid, profileId)) {
+                                await unfollowUser(currentUser.uid, profileId);
+                            } else {
+                                await followUser(currentUser.uid, profileId);
+                            }
+                            await renderPublicProfilePage(profileId); // Vuelve a renderizar para actualizar el estado y el conteo
+                            showLoading(false);
+                        };
+                    } else {
+                        toggleFollowBtn.classList.add('hidden');
+                    }
                 } else {
                     nameDisplay.textContent = "Perfil no encontrado";
                     bioDisplay.textContent = "";
                     profilePhoto.src = "https://placehold.co/150x150/1a1a1a/fff?text=404";
+                    followerCountEl.textContent = "";
+                    toggleFollowBtn.classList.add('hidden');
                     document.getElementById('public-gallery').innerHTML = "<p class='text-center text-gray-500 mt-8'>El usuario no existe.</p>";
                 }
             }, (error) => {
